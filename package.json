@@ -1,0 +1,32 @@
+{
+  "name": "openloom-smolvlm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first Loom-style recorder that generates Markdown walkthroughs with SmolVLM2 and LFM2.5 Audio.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "tauri:dev": "tauri dev",
+    "build": "tsc && vite build",
+    "tauri:build": "tauri build",
+    "test": "vitest run",
+    "test:services": "python3 -m unittest discover -s tests"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.2.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^25.0.1",
+    "vitest": "^3.2.4"
+  }
+}

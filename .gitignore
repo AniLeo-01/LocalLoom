@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+exports/
+recordings/
+logs/
+*.mp4
+.ropeproject/
+uv.lock
+vite.config.ts.timestamp-*
+audio_chunks/

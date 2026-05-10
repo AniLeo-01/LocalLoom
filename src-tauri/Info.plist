@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OpenLoom needs microphone access to record narration for your tutorials.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>OpenLoom needs screen recording access to capture your walkthrough.</string>
+</dict>
+</plist>

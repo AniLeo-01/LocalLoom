@@ -1,0 +1,13 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for OpenLoom",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "dialog:allow-open"
+  ],
+  "security": {
+    "csp": null
+  }
+}
