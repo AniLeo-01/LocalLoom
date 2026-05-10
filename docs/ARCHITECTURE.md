@@ -3,7 +3,7 @@
 OpenLoom has three parts:
 
 1. A macOS-first Tauri desktop app for recording and local export.
-2. Two Modal-hosted vLLM VMs: SmolVLM2 for visual analysis and Whisper for transcription.
+2. Two Modal-hosted vLLM VMs: Qwen VLM2 for visual analysis and Whisper for transcription.
 3. A deterministic guide renderer that turns structured model output into Markdown.
 
 ## Recording Flow
@@ -15,7 +15,7 @@ The desktop app captures the display through `navigator.mediaDevices.getDisplayM
 The app calls two OpenAI-compatible Modal vLLM VMs in parallel.
 
 - Whisper ASR VM: `/v1/chat/completions` sends the recording as base64 `input_audio` to `openai/whisper-large-v3-turbo`.
-- SmolVLM VM: `/v1/chat/completions` sends the MP4 as a base64 `video_url` data URL to `HuggingFaceTB/SmolVLM2-2.2B-Instruct`.
+- Qwen VLM VM: `/v1/chat/completions` sends the MP4 as a base64 `video_url` data URL to `HuggingFaceTB/Qwen VLM2-2.2B-Instruct`.
 - Desktop: aligns transcript segments and visual events by timestamp, then renders Markdown.
 
 If `OPENLOOM_API_TOKEN` is set in either Modal environment, POST endpoints require `Authorization: Bearer <token>`. The desktop app stores that value as `modalApiToken`.

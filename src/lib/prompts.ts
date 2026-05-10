@@ -44,7 +44,7 @@ export const SYNTHESIS_SYSTEM_PROMPT =
   `ALWAYS prefer the spelling from the VISUAL descriptions since those are read directly from the screen.\n\n` +
   `Common audio transcription errors to watch for and correct:\n` +
   `- "white" in audio usually means "VITE_" (environment variable prefix)\n` +
-  `- "small vlm" or "small BLM" in audio usually means "SmolVLM"\n` +
+  `- "qwen" or "queen" in audio usually means "Qwen VLM"\n` +
   `- "modal" may be transcribed as "modale" or similar\n\n` +
   `Always use the EXACT spelling from visual descriptions for: variable names, URLs, file names, and commands.`;
 

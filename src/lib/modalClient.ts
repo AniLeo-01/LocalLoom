@@ -541,7 +541,7 @@ async function analyzeFrameBatch(
       { role: "user", content },
     ],
   };
-  console.log(`[OpenLoom] SmolVLM batch ${batchIdx + 1}/${totalBatches} → ${url}`);
+  console.log(`[OpenLoom] Qwen VLM batch ${batchIdx + 1}/${totalBatches} → ${url}`);
   const raw = await invoke<string>("http_post", {
     url,
     body: JSON.stringify(payload),
@@ -550,10 +550,10 @@ async function analyzeFrameBatch(
       ...authHeader(apiToken),
     },
   });
-  console.log(`[OpenLoom] SmolVLM batch ${batchIdx + 1}/${totalBatches} ← response length: ${raw.length}`);
+  console.log(`[OpenLoom] Qwen VLM batch ${batchIdx + 1}/${totalBatches} ← response length: ${raw.length}`);
   const body = JSON.parse(raw);
   const result = body.choices?.[0]?.message?.content?.trim() || "No visual description returned.";
-  console.log(`[OpenLoom] SmolVLM batch ${batchIdx + 1} result: ${result.slice(0, 100)}...`);
+  console.log(`[OpenLoom] Qwen VLM batch ${batchIdx + 1} result: ${result.slice(0, 100)}...`);
   return result;
 }
 

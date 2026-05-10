@@ -1,16 +1,16 @@
 """
-Test script to check if the SmolVLM vLLM deployment supports multi-image and text inputs.
+Test script to check if the Qwen VLM vLLM deployment supports multi-image and text inputs.
 
 Usage:
-    # Set the base URL of your deployed SmolVLM service
+    # Set the base URL of your deployed Qwen VLM service
     export QWENVL_BASE_URL="https://your-modal-url.modal.run"
     # Optional: set API token if configured
     export OPENLOOM_API_TOKEN="your-token"
 
-    python services/test_smolvlm.py
+    python services/test_qwenvlm.py
 
     # Or test with a real video file (extracts frames via ffmpeg):
-    python services/test_smolvlm.py /path/to/recording.mp4
+    python services/test_qwenvlm.py /path/to/recording.mp4
 """
 
 import asyncio
@@ -274,7 +274,7 @@ async def main():
         print("  export QWENVL_BASE_URL='https://your-url.modal.run'")
         sys.exit(1)
 
-    print(f"SmolVLM endpoint: {BASE_URL}")
+    print(f"Qwen VLM endpoint: {BASE_URL}")
     print(f"Model: {MODEL}")
     print(f"Auth: {'yes' if API_TOKEN else 'no'}\n")
 

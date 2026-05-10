@@ -90,7 +90,7 @@ SYNTHESIS_SYSTEM_PROMPT = """You are a technical writer creating software tutori
 
 Common audio transcription errors to watch for and correct:
 - "white" in audio usually means "VITE_" (environment variable prefix)
-- "small vlm" or "small BLM" in audio usually means "SmolVLM"
+- "small vlm" or "small BLM" in audio usually means "Qwen VLM"
 - "modal" may be transcribed as "modale" or similar
 
 Always use the EXACT spelling from visual descriptions for: variable names, URLs, file names, and commands."""
@@ -172,7 +172,7 @@ class PipelineLogger:
         self.main_log = log_dir / f"pipeline_{self.timestamp}.log"
 
         # Model-specific logs
-        self.smolvlm_log = log_dir / f"smolvlm_{self.timestamp}.json"
+        self.qwenvlm_log = log_dir / f"qwenvlm_{self.timestamp}.json"
         self.whisper_log = log_dir / f"whisper_{self.timestamp}.json"
         self.synthesis_log = log_dir / f"synthesis_{self.timestamp}.json"
 
@@ -199,7 +199,7 @@ class PipelineLogger:
         self.logger.addHandler(console_handler)
 
         # Model output storage
-        self.smolvlm_outputs: list[dict[str, Any]] = []
+        self.qwenvlm_outputs: list[dict[str, Any]] = []
         self.whisper_outputs: list[dict[str, Any]] = []
         self.synthesis_outputs: list[dict[str, Any]] = []
 
@@ -215,9 +215,9 @@ class PipelineLogger:
     def error(self, msg: str) -> None:
         self.logger.error(msg)
 
-    def log_smolvlm_request(self, batch_idx: int, total_batches: int,
+    def log_qwenvlm_request(self, batch_idx: int, total_batches: int,
                             frame_range: tuple[int, int], request: dict[str, Any]) -> None:
-        """Log SmolVLM API request."""
+        """Log Qwen VLM API request."""
         entry = {
             "type": "request",
             "batch_idx": batch_idx,
@@ -228,12 +228,12 @@ class PipelineLogger:
             "num_images": len([c for c in request.get("messages", [{}])[0].get("content", [])
                               if isinstance(c, dict) and c.get("type") == "image_url"]),
         }
-        self.smolvlm_outputs.append(entry)
-        self.debug(f"SmolVLM request batch {batch_idx + 1}/{total_batches}: frames {frame_range}")
+        self.qwenvlm_outputs.append(entry)
+        self.debug(f"Qwen VLM request batch {batch_idx + 1}/{total_batches}: frames {frame_range}")
 
-    def log_smolvlm_response(self, batch_idx: int, response: dict[str, Any],
+    def log_qwenvlm_response(self, batch_idx: int, response: dict[str, Any],
                              description: str) -> None:
-        """Log SmolVLM API response."""
+        """Log Qwen VLM API response."""
         entry = {
             "type": "response",
             "batch_idx": batch_idx,
@@ -242,8 +242,8 @@ class PipelineLogger:
             "extracted_description": description,
             "description_length": len(description),
         }
-        self.smolvlm_outputs.append(entry)
-        self.debug(f"SmolVLM response batch {batch_idx + 1}: {len(description)} chars")
+        self.qwenvlm_outputs.append(entry)
+        self.debug(f"Qwen VLM response batch {batch_idx + 1}: {len(description)} chars")
 
     def log_whisper_request(self, filename: str, file_size_mb: float) -> None:
         """Log Whisper ASR request."""
@@ -309,9 +309,9 @@ class PipelineLogger:
 
     def save_all_logs(self) -> None:
         """Save all model outputs to JSON files."""
-        with open(self.smolvlm_log, "w") as f:
-            json.dump(self.smolvlm_outputs, f, indent=2, default=str)
-        self.info(f"SmolVLM logs saved to: {self.smolvlm_log}")
+        with open(self.qwenvlm_log, "w") as f:
+            json.dump(self.qwenvlm_outputs, f, indent=2, default=str)
+        self.info(f"Qwen VLM logs saved to: {self.qwenvlm_log}")
 
         with open(self.whisper_log, "w") as f:
             json.dump(self.whisper_outputs, f, indent=2, default=str)
@@ -386,7 +386,7 @@ def extract_frames(
 
 
 # ============================================================================
-# SmolVLM Analysis
+# Qwen VLM Analysis
 # ============================================================================
 
 async def analyze_frames_batched(
@@ -397,7 +397,7 @@ async def analyze_frames_batched(
     logger: PipelineLogger,
 ) -> list[str]:
     """
-    Analyze frames in batches using SmolVLM.
+    Analyze frames in batches using Qwen VLM.
     Returns one description string per batch.
     Uses semaphore to limit concurrent requests and avoid API overload.
     """
@@ -449,13 +449,13 @@ async def analyze_frame_batch_with_retry(
             if attempt < MAX_RETRIES:
                 wait_time = (attempt + 1) * 5  # 5s, 10s backoff
                 logger.warning(
-                    f"SmolVLM batch {batch_idx + 1}/{total_batches} failed ({error_msg}), "
+                    f"Qwen VLM batch {batch_idx + 1}/{total_batches} failed ({error_msg}), "
                     f"retry {attempt + 1}/{MAX_RETRIES} in {wait_time}s"
                 )
                 await asyncio.sleep(wait_time)
             else:
                 logger.error(
-                    f"SmolVLM batch {batch_idx + 1}/{total_batches} failed after {MAX_RETRIES + 1} attempts: {error_msg}"
+                    f"Qwen VLM batch {batch_idx + 1}/{total_batches} failed after {MAX_RETRIES + 1} attempts: {error_msg}"
                 )
 
     # Return fallback description if all retries failed
@@ -473,7 +473,7 @@ async def analyze_frame_batch(
     api_token: str | None,
     logger: PipelineLogger,
 ) -> str:
-    """Analyze a single batch of frames with SmolVLM."""
+    """Analyze a single batch of frames with Qwen VLM."""
     url = f"{base_url.rstrip('/')}/v1/chat/completions"
 
     # Build content with images
@@ -508,8 +508,8 @@ async def analyze_frame_batch(
     if api_token:
         headers["Authorization"] = f"Bearer {api_token}"
 
-    logger.log_smolvlm_request(batch_idx, total_batches, (frame_start, frame_end), payload)
-    logger.info(f"SmolVLM batch {batch_idx + 1}/{total_batches} → {url}")
+    logger.log_qwenvlm_request(batch_idx, total_batches, (frame_start, frame_end), payload)
+    logger.info(f"Qwen VLM batch {batch_idx + 1}/{total_batches} → {url}")
 
     # Use aiohttp.ClientTimeout for proper timeout handling
     timeout = aiohttp.ClientTimeout(total=300)  # 5 minutes per request
@@ -521,8 +521,8 @@ async def analyze_frame_batch(
     if not description:
         description = "No visual description returned."
 
-    logger.log_smolvlm_response(batch_idx, result, description)
-    logger.info(f"SmolVLM batch {batch_idx + 1}/{total_batches} ← {len(description)} chars")
+    logger.log_qwenvlm_response(batch_idx, result, description)
+    logger.info(f"Qwen VLM batch {batch_idx + 1}/{total_batches} ← {len(description)} chars")
 
     return description
 
@@ -925,13 +925,13 @@ async def run_pipeline(video_path: Path, output_dir: Path, log_dir: Path) -> Pat
     logger.info("Step 1: Extracting frames at fixed FPS")
     frames = extract_frames(video_path, fps=TARGET_FPS, max_frames=MAX_FRAMES, logger=logger)
 
-    # Step 2: Run SmolVLM and Whisper in parallel
+    # Step 2: Run Qwen VLM and Whisper in parallel
     logger.info("-" * 40)
-    logger.info("Step 2: Running SmolVLM + Whisper in parallel")
+    logger.info("Step 2: Running Qwen VLM + Whisper in parallel")
 
     async with aiohttp.ClientSession() as session:
         # Run both in parallel
-        smolvlm_task = analyze_frames_batched(
+        qwenvlm_task = analyze_frames_batched(
             session, vision_url, frames, openai_api_key, logger
         )
         whisper_task = transcribe_with_whisper(
@@ -939,14 +939,14 @@ async def run_pipeline(video_path: Path, output_dir: Path, log_dir: Path) -> Pat
         )
 
         raw_batch_descriptions, (segments, duration) = await asyncio.gather(
-            smolvlm_task, whisper_task
+            qwenvlm_task, whisper_task
         )
 
     # Deduplicate consecutive similar descriptions
     batch_descriptions = deduplicate_descriptions(raw_batch_descriptions, logger=logger)
 
     logger.info(
-        f"SmolVLM: {len(raw_batch_descriptions)} batches → {len(batch_descriptions)} after dedup"
+        f"Qwen VLM: {len(raw_batch_descriptions)} batches → {len(batch_descriptions)} after dedup"
     )
     logger.info(f"Whisper: {len(segments)} segments, {duration:.1f}s duration")
 

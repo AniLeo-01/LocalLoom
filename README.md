@@ -1,58 +1,126 @@
-# OpenLoom SmolVLM
+# LocalLoom
 
-OpenLoom is a macOS-first, open-source Loom-style recorder that generates tutorial walkthroughs from screen recordings.
+LocalLoom is a macOS-first, open-source screen recorder that generates step-by-step tutorial walkthroughs from your recordings using AI.
 
-The MVP records screen video and microphone audio locally, sends the MP4 to two Modal-hosted inference VMs, and exports:
+## Features
 
-- `video.mp4`
-- `guide.md`
-- `walkthrough.json`
+- Screen recording with circular webcam PiP overlay
+- AI-powered frame analysis (vision model)
+- Audio transcription with timestamps
+- Automatic tutorial generation in Markdown
+- Local-first: all processing happens on your machine or your own infrastructure
 
-Models:
+## Two Ways to Use LocalLoom
 
-- `HuggingFaceTB/SmolVLM2-2.2B-Instruct` for video understanding
-- `openai/whisper-large-v3-turbo` for transcription
+### Option 1: Download DMG (Easiest)
 
-## Local Desktop Development
+Download the pre-built app from [Releases](https://github.com/AniLeo-01/LocalLoom/releases).
+
+**Uses OpenAI models:**
+- Vision: GPT-5.4-mini, GPT-5.2, GPT-5.4, GPT-5.5
+- Transcription: GPT-4o-mini-transcribe, GPT-4o-transcribe
+
+**Setup:**
+1. Download `OpenLoom_x.x.x_aarch64.dmg`
+2. Drag to Applications
+3. Open LocalLoom → Settings → Enter your OpenAI API key
+4. Start recording!
+
+### Option 2: Build from Source (Customizable)
+
+Build from source to use your own Modal-hosted models or customize the pipeline.
+
+**Uses Modal-hosted models (via .env):**
+- Vision: Qwen3.5-4B (or any vLLM-compatible model)
+- Transcription: Whisper-large-v3-turbo
 
 ```bash
+# Clone and install
+git clone https://github.com/AniLeo-01/LocalLoom.git
+cd LocalLoom
 npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your Modal URLs and API keys
+
+# Run in development
 npm run tauri:dev
+
+# Build for production
+npm run tauri:build
 ```
 
-The app stores recordings in the configured recording directory and writes exports to the configured export directory.
-
-## Modal Services
-
-OpenLoom uses two OpenAI-compatible vLLM deployments on Modal:
-
-- `services/modal_smolvlm.py`: SmolVLM2 video-analysis VM with `/health` and `/v1/chat/completions`
-- `services/modal_whisper_asr.py`: Whisper ASR transcription VM with `/health` and `/v1/chat/completions`
+## Environment Variables (.env)
 
 ```bash
+# Modal VM URLs (for build-from-source option)
+VITE_QWENVL_BASE_URL=https://your-workspace--openloom-qwenvlm-serve.modal.run
+VITE_WHISPER_ASR_BASE_URL=https://your-workspace--openloom-whisper-asr-serve.modal.run
+
+# Optional: API token if OPENLOOM_API_TOKEN is set on your Modal VMs
+MODAL_API_TOKEN=
+
+# OpenAI API key (used for tutorial synthesis in both options)
+VITE_OPENAI_API_KEY=sk-...
+```
+
+## Modal Services (Self-Hosted)
+
+Deploy your own inference VMs on Modal:
+
+```bash
+# Setup Python environment
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r services/requirements.txt
-modal deploy services/modal_smolvlm.py
-modal deploy services/modal_whisper_asr.py
+
+# Deploy services
+modal deploy services/modal_qwenvlm.py      # Qwen3.5-4B vision model
+modal deploy services/modal_whisper_asr.py  # Whisper ASR
 ```
 
-Set `OPENLOOM_API_TOKEN` in either Modal environment to require the desktop app to send a matching bearer token.
+**Services:**
+- `services/modal_qwenvlm.py`: Qwen3.5-4B vision model with `/v1/chat/completions`
+- `services/modal_whisper_asr.py`: Whisper ASR with `/v1/audio/transcriptions`
 
-Paste each deployment URL into the desktop app:
+Set `OPENLOOM_API_TOKEN` in Modal environment to require bearer token authentication.
 
-- SmolVLM VM URL: `https://your-workspace--openloom-smolvlm-serve.modal.run`
-- Whisper ASR vLLM URL: `https://your-workspace--openloom-whisper-asr-serve.modal.run`
+## Output
 
-The desktop app calls both vLLM servers in parallel and synthesizes the final walkthrough locally.
+LocalLoom exports:
+- `video.mp4` - Your screen recording
+- `guide.md` - AI-generated tutorial
+- `walkthrough.json` - Structured walkthrough data
+
+## Test Pipeline
+
+Test the full pipeline from command line:
+
+```bash
+python3 test_pipeline.py path/to/video.mp4
+```
+
+This uses the Modal-hosted models configured in `.env`.
 
 ## Tests
 
 ```bash
-npm test
-npm run test:services
+npm test              # TypeScript tests
+npm run test:services # Python service tests
 ```
+
+## Tech Stack
+
+- **Frontend:** React + TypeScript + Vite
+- **Backend:** Rust + Tauri
+- **Vision Models:** OpenAI GPT / Qwen3.5-4B (Modal)
+- **ASR:** OpenAI Transcribe / Whisper (Modal)
 
 ## Scope
 
-The MVP is local-export only. Hosted sharing links, auth, comments, team workspaces, browser extension capture, and cloud video storage are intentionally out of scope.
+LocalLoom is local-export only. Hosted sharing, auth, comments, team workspaces, and cloud storage are intentionally out of scope.
+
+## License
+
+MIT
